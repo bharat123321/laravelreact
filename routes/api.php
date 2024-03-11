@@ -3,7 +3,8 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomeController;
-use App\Http\Controllers\indexController;
+use App\Http\Controllers\IndexController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -15,24 +16,25 @@ use App\Http\Controllers\indexController;
 |
 */
 
+// Route for testing Sanctum authentication
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::get("/",function(){
+// Default route (you might want to remove this if not needed)
+Route::get("/", function () {
     return view("home");
 });
-Route::POST("/login",[HomeController::class,"login"]);
-  Route::group([
 
-    'middleware' => 'api',
-    // 'prefix' => 'auth'
+// Authentication routes
+Route::post("/login", [HomeController::class, "login"])->name('login');
+Route::post("/register", [HomeController::class, "register"]);
 
-], function ($router) {
-
-     
-  Route::POST("/register",[HomeController::class,"register"]);
-  Route::get("/home",[IndexController::class,"index"]);
+// Authenticated routes group
+Route::group(['middleware'=>'api'], function () {
+    Route::post('/upload', [HomeController::class, 'upload']);
+    Route::post("/home", [IndexController::class, "index"]);
+    // Add more authenticated routes here if needed
 });
 
  

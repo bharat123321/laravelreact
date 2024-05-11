@@ -25,6 +25,9 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::get("/", function () {
     return view("home");
 });
+use App\Http\Controllers\DataController;
+
+Route::middleware('auth:sanctum')->get('/data', [DataController::class, 'getData']);
 
 // Authentication routes
 Route::post("/login", [HomeController::class, "login"])->name('login');
@@ -33,7 +36,13 @@ Route::post("/register", [HomeController::class, "register"]);
 // Authenticated routes group
 Route::group(['middleware'=>'api'], function () {
     Route::post('/upload', [HomeController::class, 'upload']);
+    Route::post('/classcode',[HomeController::class,'classCode']);
+    Route::post('/joincode',[IndexController::class,'Joincode']);
+    Route::get('/fetchUser',[IndexController::class,'FetchUser']);
+    Route::get('/fetchdata',[IndexController::class,'Fetchdata']);
     Route::post("/home", [IndexController::class, "index"]);
+    Route::get("/userverify", [IndexController::class, "UserVerify"]);
+    Route::post("/profilepic",[IndexController::class,"ProfileUpdate"]);
     // Add more authenticated routes here if needed
 });
 

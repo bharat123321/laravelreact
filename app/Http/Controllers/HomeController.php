@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Image;
+use App\Models\classcode;
 class HomeController extends Controller
 {
     /**
@@ -42,7 +43,7 @@ class HomeController extends Controller
          $credentials = request(['email', 'password']);
 
         if (! $token = auth()->attempt($credentials)) {
-            return response()->json(['error' => 'Unauthorized'], 401);
+            return response()->json(['status'=>401,'error' => 'Email and password does not match'], 401);
         }
 
         return $this->respondWithToken($token);
@@ -152,11 +153,13 @@ class HomeController extends Controller
         'expires_in' => auth()->factory()->getTTL() * 60,
         'user' => $user,
         'first_time_login' => $user->first_time_login,
-    ]);
+        'success'=>'Login Successfully', 
+            ]);
 }
 
 public function upload(Request $request)
 {
+     \Log::info($request->all());
      if ($request->has('images')) {
     $validator = Validator::make($request->all(), [
          'images'=>'required',
@@ -182,7 +185,6 @@ public function upload(Request $request)
 
          if($request->file('images'))
          {
-             \Log::info($request->all());
             foreach ($request->file('images') as $image) {
                 // Store each image
              $imageName = $image->getClientOriginalName();
@@ -210,15 +212,10 @@ public function upload(Request $request)
     // If files are present, validate them
     $validator = Validator::make($request->all(), [
         'files' =>'required',
-       'files.*' => 'required|file|mimes:pdf,doc,docx|max:10248',
-        'description' => 'string|nullable', // Optional description field
+       'files.*' => 'required|file|mimes:pdf|max:10248',
+        'description' => 'string|nullable',
     ]);
-   // If files are present, validate them
-$validator = Validator::make($request->all(), [
-    'files' => 'required',
-    'files.*' => 'required|file|mimes:pdf,doc,docx|max:10248',
-    'description' => 'string|nullable', // Optional description field
-]);
+   
 
 if ($validator->fails()) {
     $errors = $validator->errors()->all();
@@ -236,7 +233,7 @@ if ($validator->fails()) {
     } else {
         return response()->json([
             'status' => 422,
-            'message' => 'Files should only be supported pdf, doc, docx.',
+            'message' => 'Files should only be supported PDF.',
             'errors' => $validator->errors()
         ], 422);
     }
@@ -248,7 +245,7 @@ if ($validator->fails()) {
 
          if($request->file('files'))
          {
-             \Log::info($request->all());
+            
             foreach ($request->file('files') as $file) {
                 // Store each image
              $fileName = $file->getClientOriginalName();
@@ -266,7 +263,7 @@ if ($validator->fails()) {
         $file->visible = $visible;
         $file->user_id = Auth::user()->id;
         $file->save();
-            return response()->json(['message' => 'Files uploaded successfully'], 200);
+        return response()->json(['message' => 'Files uploaded successfully'], 200);
        } 
 
         return response()->json(['message' => 'No Files found to upload'], 400);
@@ -277,7 +274,7 @@ if ($validator->fails()) {
     $validator = Validator::make($request->all(), [
         'video' =>'required',
        'video.*' => 'required|file|mimes:mp4,mov,avi,wmv|max:1048576',
-        'description' => 'string|nullable', // Optional description field
+        'description' => 'string|nullable',  
     ]);
     if ($validator->fails()) {
         return response()->json([
@@ -292,7 +289,7 @@ if ($validator->fails()) {
 
          if($request->file('video'))
          {
-             \Log::info($request->all());
+             
             foreach ($request->file('video') as $video) {
                 // Store each z
              $videoName = $file->getClientOriginalName();
@@ -325,6 +322,56 @@ if ($validator->fails()) {
     }
     
         }
+          public function classCode(Request $request){
+            $checkimages =$request->file('images');
+         
+          \Log::info($request->all());
+          $validate = Validator::make($request->all(), [
+            'subjectname' => 'required',
+            'userCode' => 'required', // Adding userCode validation
+         
+          ]);
+          if($validate->fails()){
+            return response()->json(['msg'=>$validate->errors()]);
+          }
+          else{ 
+                $images = [];
+            \log::info("check");
+         if($request->file('images'))
+         { 
+            \log::info("check1");
+            foreach ($request->file('images') as $image) {
+                
+                // Store each z
+             $imageName = $image->getClientOriginalName();
+             // $imageName = time() . '.' . $image->getClientOriginalExtension(); 
+                 $image->move("classimage",$imageName);
+               
+             $images[] = $imageName;
+       }
+            $imageNamesString = implode(',', $images);
+
+        
+         $codes =$request->input('userCode');
+         $subject_nm =$request->input('subjectname');
+         $img = $request->file('image');
+         $code = new classcode();
+         $code->class_code = $codes;
+         $code->user_id = Auth::user()->id;
+         $code->subjectname= $subject_nm;
+         $code->image = $imageNamesString;
+
+         $code->save();
+         return response()->json(['msg'=>"SuccessFully created"]);
+     }
+ }
+    }
+     public function Joincode(Request $request)
+    {
+        \Log::info($request->all());
+        $code = $request->input('userCode');
+
+    }
          
 }    
 

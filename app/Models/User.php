@@ -8,7 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Tymon\JWTAuth\Contracts\JWTSubject;
-
+use App\Models\Image;
 class User extends Authenticatable implements JWTSubject
 {
     use HasApiTokens, HasFactory, Notifiable;
@@ -19,7 +19,7 @@ class User extends Authenticatable implements JWTSubject
      * @var array<int, string>
      */
     protected $fillable = [
-        'firstname','lastname','email', 'password','address','gender','country',
+        'firstname','lastname','email', 'password','address','gender','country','avatar',
           
     ];
       
@@ -45,6 +45,7 @@ class User extends Authenticatable implements JWTSubject
     ];
 
 
+    
      // Rest omitted for brevity
 
     /**

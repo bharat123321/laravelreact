@@ -104,7 +104,7 @@ class indexController extends Controller
         $store = DB::table('users')->where('classcode_status',1)->first();
         $conn = DB::table('joincodes')->where('join_id',Auth::user()->id)->get();
         $subjectName = DB::table('classcodes')
-                    ->select('classcodes.subjectname')
+                    ->select('classcodes.subjectname','classcodes.class_code')
                     ->join('joincodes', 'classcodes.class_code', '=', 'joincodes.classscode')
                     ->where('joincodes.join_id', '=', Auth::user()->id)
                     ->get();
@@ -113,6 +113,27 @@ class indexController extends Controller
      }
      return response()->json(['status'=>401]);
 }
+
+  public function FetchCreatedGroup(){
+        if(Auth::check())
+        {
+       $subjectName = DB::table('users')
+            ->join('classcodes', 'users.id', '=', 'classcodes.user_id') 
+            ->where('classcodes.user_id', '=',Auth::user()->id)
+            ->get();
+
+        if ($subjectName->isEmpty()) {
+            // No matches found or no records created
+            return response()->json(['fetchdata' => []]);
+        } else {
+            // Matches found, return the data
+            return response()->json(['fetchdata' => $subjectName]);
+        }
+        
+     }
+     return response()->json(['status'=>401]);
+}
+ 
  public function fetchData() {
     $fetchData = DB::table('images')
     ->join('users', 'images.user_id', '=', 'users.id')
@@ -126,6 +147,19 @@ class indexController extends Controller
 
     return response()->json(['data' => $fetchData]);
 }
+ public function FetchUpload($code)
+{
+    if (Auth::check()) {
+        $subjectName = DB::table('users')
+            ->join('classcodes', 'users.id', '=', 'classcodes.user_id') 
+            ->where('classcodes.class_code', '=', $code)
+            ->get();
+
+        return response()->json(['checks' => $subjectName]);
+    }
+    return response()->json(['status' => 401]);
+}
+
 
    public function ProfileUpdate(Request $request)
 {

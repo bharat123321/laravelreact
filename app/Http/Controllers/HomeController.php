@@ -233,7 +233,7 @@ if ($validator->fails()) {
     } else {
         return response()->json([
             'status' => 422,
-            'message' => 'Files should only be supported PDF.',
+            'message' => 'Only PDF files are supported.',
             'errors' => $validator->errors()
         ], 422);
     }

@@ -39,7 +39,10 @@ Route::group(['middleware'=>'api'], function () {
     Route::post('/classcode',[HomeController::class,'classCode']);
     Route::post('/joincode',[IndexController::class,'Joincode']);
     Route::get('/fetchUser',[IndexController::class,'FetchUser']);
+     Route::get('/fetchcreateddata',[IndexController::class,'FetchCreatedGroup']);
+      Route::get('/fetchselectednots',[IndexController::class,'FetchSelectedNotes']);
     Route::get('/fetchdata',[IndexController::class,'Fetchdata']);
+    Route::get('/fetchupload/{code}',[IndexController::class,"FetchUpload"]);
     Route::post("/home", [IndexController::class, "index"]);
     Route::get("/userverify", [IndexController::class, "UserVerify"]);
     Route::post("/profilepic",[IndexController::class,"ProfileUpdate"]);

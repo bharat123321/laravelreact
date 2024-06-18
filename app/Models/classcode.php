@@ -9,8 +9,16 @@ class classcode extends Model
 {
     use HasFactory;
 
-    protected $fillable=['classcode','user_id','subjectname'];
+   protected $fillable = ['classcode', 'user_id', 'subjectname', 'image'];
 
+    public function formattedCreatedDate()
+    {
+        if ($this->created_at->diffInDays() > 30) {
+            return $this->created_at->toFormattedDateString();
+        } else {
+            return $this->created_at->diffForHumans();
+        }
 
+    }
    
 }

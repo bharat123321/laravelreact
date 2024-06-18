@@ -157,10 +157,93 @@ class HomeController extends Controller
             ]);
 }
 
-public function upload(Request $request)
+public function classCode(Request $request)
 {
-     \Log::info($request->all());
-     if ($request->has('images')) {
+    \Log::info($request->all());
+    
+    // Determine the file type
+    $fileType = $request->filestypes;
+
+    // Set validation rules based on file type
+    $rules = [
+        'subjectname' => 'required',
+        'userCode' => 'required',
+    ];
+
+    if ($fileType === 'images') {
+        $rules['images'] = 'required';
+        $rules['images.*'] = 'required|image|mimes:jpeg,png,jpg,gif|max:2048';
+    } elseif ($fileType === 'files') {
+        $rules['files'] = 'required';
+        $rules['files.*'] = 'required|mimes:pdf,doc,docx,txt|max:2048';
+    } elseif ($fileType === 'videos') {
+        $rules['videos'] = 'required';
+        $rules['videos.*'] = 'required|mimes:mp4,avi,mkv|max:10240';
+    } else {
+        return response()->json(['status' => 400, 'message' => 'Invalid file type'], 400);
+    }
+
+    // Validate the request
+    $validator = Validator::make($request->all(), $rules);
+
+    if ($validator->fails()) {
+        $errors = $validator->errors()->all();
+        return response()->json([
+            'status' => 422,
+            'message' => 'Validation error',
+            'errors' => $errors
+        ], 422);
+    }
+
+    // Process the files
+    $uploadedFiles = null;
+    $fileNames = [];
+
+    if ($fileType === 'images') {
+        $uploadedFiles = $request->file('images');
+    } elseif ($fileType === 'files') {
+        $uploadedFiles = $request->file('files');
+    } elseif ($fileType === 'videos') {
+        $uploadedFiles = $request->file('videos');
+    }
+
+    if ($uploadedFiles) {
+        foreach ($uploadedFiles as $file) {
+            $fileName = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path("class{$fileType}"), $fileName);
+            $fileNames[] = $fileName;
+        }
+    }
+
+    $fileNamesString = implode(',', $fileNames);
+    $codes = $request->input('userCode');
+    $subject_nm = $request->input('subjectname');
+
+    // Save to the database
+    $code = new classcode();
+    $code->class_code = $codes;
+    $code->user_id = Auth::user()->id;
+    $code->subjectname = $subject_nm;
+
+    if ($fileType === 'images') {
+        $code->image = $fileNamesString;
+    } elseif ($fileType === 'files') {
+        $code->file = $fileNamesString;
+    } elseif ($fileType === 'videos') {
+        $code->video = $fileNamesString;
+    }
+
+    $code->save();
+
+    return response()->json(['message' => 'Successfully created'], 200);
+}
+
+
+
+          public function upload(Request $request)
+    {
+        \Log::info($request->all());
+         if ($request->has('images')) {
     $validator = Validator::make($request->all(), [
          'images'=>'required',
         'images.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
@@ -180,14 +263,14 @@ public function upload(Request $request)
     }
     }
     else{
-        $imageNames = [];
+        $imageNames = [];   
                $file =$request->file('images');
 
          if($request->file('images'))
          {
             foreach ($request->file('images') as $image) {
                 // Store each image
-             $imageName = $image->getClientOriginalName();
+             $imageName = time() . '_' . $image->getClientOriginalName();
              // $imageName = time() . '.' . $image->getClientOriginalExtension(); 
                  $image->move("images",$imageName);
                
@@ -195,11 +278,13 @@ public function upload(Request $request)
        }
             $imageNamesString = implode(',', $imageNames);
             $description = $request->input('description');
+            $topic = $request->input('topic');
             $visible = $request->input('visible');
            $image = new Image();
         $image->image = $imageNamesString;
         $image->visible= $visible;
         $image->description = $description;
+        $image->topic = $topic;
         $image->user_id=Auth::user()->id;
         $image->save();
             return response()->json(['message' => 'Images uploaded successfully'], 200);
@@ -216,7 +301,7 @@ public function upload(Request $request)
         'description' => 'string|nullable',
     ]);
    
-
+      
 if ($validator->fails()) {
     $errors = $validator->errors()->all();
 
@@ -248,7 +333,7 @@ if ($validator->fails()) {
             
             foreach ($request->file('files') as $file) {
                 // Store each image
-             $fileName = $file->getClientOriginalName();
+             $fileName = time() . '_' . $file->getClientOriginalName();
              // $imageName = time() . '.' . $image->getClientOriginalExtension(); 
                  $file->move("files",$fileName);
                
@@ -257,9 +342,11 @@ if ($validator->fails()) {
             $fileNamesString = implode(',', $fileNames);
             $description = $request->input('description');
             $visible = $request->input('visible');
+            $topic = $request->input('topic');
            $file = new Image();
         $file->file = $fileNamesString;
         $file->description = $description;
+        $file->topic = $topic;
         $file->visible = $visible;
         $file->user_id = Auth::user()->id;
         $file->save();
@@ -283,7 +370,7 @@ if ($validator->fails()) {
             'errors' => $validator->errors()
         ], 422);
     }
-    else{
+    else{ 
             $videoNames = [];
             $video =$request->file('video');
 
@@ -292,7 +379,7 @@ if ($validator->fails()) {
              
             foreach ($request->file('video') as $video) {
                 // Store each z
-             $videoName = $file->getClientOriginalName();
+             $videoName = time() . '_' . $video->getClientOriginalName();
              // $imageName = time() . '.' . $image->getClientOriginalExtension(); 
                  $video->move("video",$videoName);
                
@@ -320,51 +407,8 @@ if ($validator->fails()) {
      else { 
          return response()->json(['message' => '  found to upload'], 400);      
     }
-    
-        }
-          public function classCode(Request $request){
-            $checkimages =$request->file('images');
-         
-          \Log::info($request->all());
-          $validate = Validator::make($request->all(), [
-            'subjectname' => 'required',
-            'userCode' => 'required', // Adding userCode validation
-         
-          ]);
-          if($validate->fails()){
-            return response()->json(['msg'=>$validate->errors()]);
-          }
-          else{ 
-                $images = [];
-            \log::info("check");
-         if($request->file('images'))
-         { 
-            \log::info("check1");
-            foreach ($request->file('images') as $image) {
-                
-                // Store each z
-             $imageName = $image->getClientOriginalName();
-             // $imageName = time() . '.' . $image->getClientOriginalExtension(); 
-                 $image->move("classimage",$imageName);
-               
-             $images[] = $imageName;
-       }
-            $imageNamesString = implode(',', $images);
 
-        
-         $codes =$request->input('userCode');
-         $subject_nm =$request->input('subjectname');
-         $img = $request->file('image');
-         $code = new classcode();
-         $code->class_code = $codes;
-         $code->user_id = Auth::user()->id;
-         $code->subjectname= $subject_nm;
-         $code->image = $imageNamesString;
 
-         $code->save();
-         return response()->json(['msg'=>"SuccessFully created"]);
-     }
- }
     }
      public function Joincode(Request $request)
     {

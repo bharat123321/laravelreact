@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use App\Models\User;
 use App\Models\Image;
+use PDF;
+use ZipArchive;
 use Illuminate\Support\Facades\DB;
 class indexController extends Controller
 {
@@ -114,46 +116,56 @@ class indexController extends Controller
      return response()->json(['status'=>401]);
 }
 
-  public function FetchCreatedGroup(){
-        if(Auth::check())
-        {
-       $subjectName = DB::table('users')
-            ->join('classcodes', 'users.id', '=', 'classcodes.user_id') 
-            ->where('classcodes.user_id', '=',Auth::user()->id)
-            ->get();
+  
+public function FetchCreatedGroup()
+{
+    if (!Auth::check()) {
+        return response()->json(['status' => 401]);
+    }
 
-        if ($subjectName->isEmpty()) {
-            // No matches found or no records created
-            return response()->json(['fetchdata' => []]);
-        } else {
-            // Matches found, return the data
-            return response()->json(['fetchdata' => $subjectName]);
-        }
-        
-     }
-     return response()->json(['status'=>401]);
+    // Fetch records using Eloquent
+    $subjectName = classcode::join('users','classcodes.user_id','=','users.id')->where('user_id', Auth::user()->id)->get();
+
+    // Map over the collection to format the date
+    $subjectName = $subjectName->map(function ($classcode) {
+        $classcode->formatted_date = $classcode->formattedCreatedDate();
+        return $classcode;
+    });
+
+    return response()->json(['fetchdata' => $subjectName]);
 }
- 
- public function fetchData() {
-    $fetchData = DB::table('images')
-    ->join('users', 'images.user_id', '=', 'users.id')
-    ->where('images.visible', 0)
-    ->select('images.*', 'users.firstname', 'users.avatar')
-    ->orderByDesc('images.created_at') // Assuming 'created_at' is the column you want to order by
-    ->get();
 
+
+ 
+  public function Fetchdata() {
+    $fetchData = Image::join('users', 'images.user_id', '=', 'users.id')
+        ->where('images.visible', 0)
+        ->select('images.*', 'users.firstname', 'users.avatar')
+        ->orderByDesc('images.created_at')
+        ->get()
+        ->map(function ($image) {
+            $image->formatted_date = $image->formattedCreatedDate();
+            return $image;
+        });
 
     \Log::info($fetchData);
 
     return response()->json(['data' => $fetchData]);
 }
+
+
  public function FetchUpload($code)
 {
     if (Auth::check()) {
-        $subjectName = DB::table('users')
-            ->join('classcodes', 'users.id', '=', 'classcodes.user_id') 
-            ->where('classcodes.class_code', '=', $code)
-            ->get();
+        
+             // Fetch records using Eloquent
+    $subjectName = classcode::join('users','classcodes.user_id','=','users.id')->where('classcodes.class_code', '=', $code)->get();
+
+    // Map over the collection to format the date
+    $subjectName = $subjectName->map(function ($classcode) {
+        $classcode->formatted_date = $classcode->formattedCreatedDate();
+        return $classcode;
+    });
 
         return response()->json(['checks' => $subjectName]);
     }
@@ -206,6 +218,44 @@ class indexController extends Controller
         
             return response()->json(['status'=>401]);
         
+    }
+   public function DownloadImage($id)
+{
+    try {
+        $images = Image::where('id', $id)->get();
+
+        if ($images->isEmpty()) {
+            return response()->json(['error' => 'Images not found'], 404);
+        }
+           
+        $imageData = $images->map(function ($image) {
+            return ['filename' => $image->image];
+        });
+            
+        return response()->json(['images' => $imageData], 200);
+    } catch (\Exception $e) {
+        \Log::error("Error fetching images: " . $e->getMessage());
+        return response()->json(['error' => 'Error fetching images'], 500);
+    }
+}
+
+
+
+     
+         public function convertImageToPdf($id)
+    {
+        try {
+             $image = Image::find($id);
+        \Log::info($image);
+        if (!$image) {
+            return response()->json(['error' => 'Image not found'], 404);
+        }
+
+            return response()->json(['pdf_url' => $image]);
+        } catch (\Exception $e) {
+           \Log::error("Error creating PDF: " . $e->getMessage());
+            return response()->json(['error' => 'Error creating PDF'], 500);
+        }
     }
      public function convertDocxToPdf(Request $request)
     {

@@ -9,9 +9,16 @@ class Image extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['description', 'image','video','file','user_id'];
+    protected $fillable = ['description','topic', 'image','video','file','user_id','visible'];
 
     protected $casts = [
         'image_paths' => 'array',
     ];
+     public function formattedCreatedDate() {
+       if ($this->created_at->diffInDays() > 30) {
+            return   $this->created_at->toFormattedDateString();
+        } else {
+            return  $this->created_at->diffForHumans();
+        }
+}
 }

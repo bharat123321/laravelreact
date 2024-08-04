@@ -8,6 +8,8 @@ use App\Http\Controllers\PdfController;
 use App\Http\Controllers\WelcomeController;
 use App\Http\Controllers\DictionaryController;
 use App\Http\Controllers\SearchController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ViewBookController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -33,18 +35,24 @@ Route::get("/", function () {
 use App\Http\Controllers\DataController;
 
 Route::middleware('auth:sanctum')->get('/data', [DataController::class, 'getData']);
-
+//google Auth
+Route::get('auth/google', [AuthController::class, 'redirectToAuth']);
+Route::post('auth/google/callback', [AuthController::class, 'handleAuthCallback']);
 // Authentication routes
 Route::post("/login", [HomeController::class, "login"])->name('login');
 Route::post("/register", [HomeController::class, "register"]);
+Route::get("fetchbookcollection",[WelcomeController::class,"FetchCollectionbook"]);
 Route::get('/fetchpublicdata',[WelcomeController::class,'fetchpublicdata']);
+Route::get('/fetchbookid/{id}',[WelcomeController::class,'Viewbook']);
 Route::get('/lookup/{word}', [DictionaryController::class, 'lookupWord']);
+Route::get('/fetchsearchdata/{data}', [SearchController::class, 'Fetchsearchdata']);
 // Authenticated routes group
 Route::group(['middleware'=>'api'], function () {
     Route::post('/upload', [HomeController::class, 'upload']);
     Route::post('/classcode',[HomeController::class,'classCode']);
     Route::post('/joincode',[IndexController::class,'Joincode']);
     Route::get('/fetchUser',[IndexController::class,'FetchUser']);
+    Route::get('/fetchalldata',[IndexController::class,'Fetchalldata']);
     Route::get('/fetchcreateddata',[IndexController::class,'FetchCreatedGroup']);
     Route::get('/fetchselectednots',[IndexController::class,'FetchSelectedNotes']);
     Route::get('/fetchdata',[IndexController::class,'Fetchdata']);
@@ -54,12 +62,16 @@ Route::group(['middleware'=>'api'], function () {
     Route::post('/convertimgtopdf/{id}', [IndexController::class, 'convertImageToPdf']);
     Route::get("/userverify", [IndexController::class, "UserVerify"]);
     Route::post("/profilepic",[IndexController::class,"ProfileUpdate"]);
+    Route::put('/images/{id}/privacy', [IndexController::class, 'updatePrivacy']);
+    Route::delete('/images/{id}', [IndexController::class, 'destroy']);
     Route::get('/convertimgtopdf/{id}', [PdfController::class, 'preview']);
     Route::get('/downloadpdf/{id}', [PdfController::class, 'download']);
     Route::get('/files/{filename}', [PdfController::class, 'getFile']);
     Route::get('/search', [SearchController::class, 'search']);
-    
-    // Add more authenticated routes here if needed
+    Route::get('/searchdetail/{id}',[SearchController::class,'searchdetail']);
+    Route::post('/bookmark/',[ViewBookController::class,'Bookmark']);
+    Route::post('/like/',[ViewBookController::class,'Like']);
+    Route::get('/fetchbookdetail/{id}',[ViewBookController::class,'Viewbook']);
 });
 
  

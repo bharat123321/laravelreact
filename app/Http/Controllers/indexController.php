@@ -9,8 +9,11 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use App\Models\User;
 use App\Models\Image;
+use App\Models\like;
+use App\Models\Bookmark;
 use PDF;
 use ZipArchive;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 class indexController extends Controller
 {
@@ -52,13 +55,7 @@ class indexController extends Controller
         //
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
-    }
+
     public function classCode(Request $request){
           \Log::info($request->all());
          $codes =$request->input('userCode');
@@ -100,22 +97,25 @@ class indexController extends Controller
         }
         
     }
-    public function FetchUser(){
-        if(Auth::check())
-        {
-        $store = DB::table('users')->where('classcode_status',1)->first();
-        $conn = DB::table('joincodes')->where('join_id',Auth::user()->id)->get();
-        $subjectName = DB::table('classcodes')
-                    ->select('classcodes.subjectname','classcodes.class_code')
-                    ->join('joincodes', 'classcodes.class_code', '=', 'joincodes.classscode')
-                    ->where('joincodes.join_id', '=', Auth::user()->id)
-                    ->get();
-
-        return response()->json(['check'=>$subjectName]);
-     }
-     return response()->json(['status'=>401]);
-}
-
+    public function FetchUser()
+    {
+        
+        if (Auth::check()) {
+            Log::info('User is authenticated:', ['user' => Auth::user()]);
+            $store = DB::table('users')->where('classcode_status', 1)->first();
+            $conn = DB::table('joincodes')->where('join_id', Auth::user()->id)->get();
+            $subjectName = DB::table('classcodes')
+                ->select('classcodes.subjectname', 'classcodes.class_code')
+                ->join('joincodes', 'classcodes.class_code', '=', 'joincodes.classscode')
+                ->where('joincodes.join_id', '=', Auth::user()->id)
+                ->get();
+    
+            return response()->json(['check' => $subjectName]);
+        }
+        Log::info('User not authenticated');
+        return response()->json(['status' => 401]);
+    }
+    
   
 public function FetchCreatedGroup()
 {
@@ -136,10 +136,10 @@ public function FetchCreatedGroup()
 }
 
 
- 
-  public function Fetchdata() {
+  
+public function Fetchdata() {
     $fetchData = Image::join('users', 'images.user_id', '=', 'users.id')
-        ->where('images.visible', 0)
+        ->where('images.visible', 'false')
         ->select('images.*', 'users.firstname', 'users.avatar')
         ->orderByDesc('images.created_at')
         ->get()
@@ -147,11 +147,42 @@ public function FetchCreatedGroup()
             $image->formatted_date = $image->formattedCreatedDate();
             return $image;
         });
-
+     $likecount = 
     \Log::info($fetchData);
 
     return response()->json(['data' => $fetchData]);
 }
+
+public function Fetchalldata(){
+    $fetchData = Image::join('users', 'images.user_id', '=', 'users.id')
+    ->where('images.user_id',auth::user()->id)
+    ->select('images.*', 'users.firstname', 'users.avatar')
+    ->orderByDesc('images.created_at')
+    ->get()
+    ->map(function ($image) {
+        $image->formatted_date = $image->formattedCreatedDate();
+        return $image;
+    });
+
+\Log::info($fetchData);
+
+return response()->json(['data' => $fetchData]);
+}
+public function updatePrivacy(Request $request, $id)
+    {
+        $image = Image::findOrFail($id);
+        $image->update(['is_private' => $request->is_private]);
+
+        return response()->json(['message' => 'Privacy updated successfully']);
+    }
+
+    public function destroy($id)
+    {
+        $image = Image::findOrFail($id);
+        $image->delete();
+
+        return response()->json(['message' => 'Image deleted successfully']);
+    }
 
 
  public function FetchUpload($code)

@@ -170,7 +170,8 @@ return [
         App\Providers\RouteServiceProvider::class,
         Tymon\JWTAuth\Providers\LaravelServiceProvider::class,
            Barryvdh\DomPDF\ServiceProvider::class,
-    ])->toArray(),
+           Laravel\Socialite\SocialiteServiceProvider::class,
+    ])->toArray(), 
 
     /*
     |--------------------------------------------------------------------------
@@ -185,6 +186,8 @@ return [
 
     'aliases' => Facade::defaultAliases()->merge([
           'PDF' => Barryvdh\DomPDF\Facade::class,
+           
+        'Socialite' => Laravel\Socialite\Facades\Socialite::class,
         // 'Example' => App\Facades\Example::class,
     ])->toArray(),
 

@@ -22,4 +22,26 @@ class WelcomeController extends Controller
     return response()->json(['data' => $fetchData]);
 }
 
+public function FetchCollectionbook(){
+     $fetchData = Image::join('users', 'images.user_id', '=', 'users.id')
+        ->where('images.visible','false')
+        ->select('images.*', 'users.firstname', 'users.avatar')
+        ->orderByDesc('images.created_at')
+        ->get()
+        ->map(function ($image) {
+            $image->formatted_date = $image->formattedCreatedDate();
+            return $image;
+        });
+    return response()->json(['data' => $fetchData]);
+}
+ public function viewbook($id)
+{
+    
+    $fetchdata = Image::join('users', 'images.user_id', '=', 'users.id')->where('images.id', $id)->get();
+
+    return response()->json([
+        'data' => $fetchdata
+    ]);
+}
+
 }

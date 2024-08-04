@@ -20,6 +20,8 @@ return new class extends Migration
             $table->string('password');
              $table->string('address');
             $table->string('country');
+            $table->string('google_id');
+            $table->string('avatar')->nullable(); 
             $table->rememberToken();
             $table->timestamps();
         });

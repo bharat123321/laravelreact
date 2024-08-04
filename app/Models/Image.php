@@ -9,7 +9,7 @@ class Image extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['description','topic', 'image','video','file','user_id','visible'];
+    protected $fillable = ['description','topic', 'image','video','category','file','user_id','visible'];
 
     protected $casts = [
         'image_paths' => 'array',
@@ -21,4 +21,15 @@ class Image extends Model
             return  $this->created_at->diffForHumans();
         }
 }
+
+ public function likes()
+    {
+        return $this->hasMany(Like::class);
+    }
+    // Define the inverse relationship with the 'bookmarks' table
+    public function bookmarkedByUsers()
+    {
+        return $this->belongsToMany(User::class, 'bookmarks', 'post_id', 'user_id')
+                    ->withTimestamps();
+    }
 }

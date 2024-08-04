@@ -157,6 +157,8 @@ class HomeController extends Controller
             ]);
 }
 
+
+
 public function classCode(Request $request)
 {
     \Log::info($request->all());
@@ -299,6 +301,7 @@ public function classCode(Request $request)
         'files' =>'required',
        'files.*' => 'required|file|mimes:pdf|max:10248',
         'description' => 'string|nullable',
+        'category'=>'required',
     ]);
    
       
@@ -343,11 +346,13 @@ if ($validator->fails()) {
             $description = $request->input('description');
             $visible = $request->input('visible');
             $topic = $request->input('topic');
+            $category = $request->input('category');
            $file = new Image();
         $file->file = $fileNamesString;
         $file->description = $description;
         $file->topic = $topic;
         $file->visible = $visible;
+        $file->category= $category;
         $file->user_id = Auth::user()->id;
         $file->save();
         return response()->json(['message' => 'Files uploaded successfully'], 200);

@@ -19,8 +19,7 @@ class User extends Authenticatable implements JWTSubject
      * @var array<int, string>
      */
     protected $fillable = [
-        'firstname','lastname','email', 'password','address','gender','country','avatar',
-          
+        'firstname','lastname','email', 'password','address','gender','country','avatar','google_id', 
     ];
       
     /**
@@ -66,5 +65,15 @@ class User extends Authenticatable implements JWTSubject
     public function getJWTCustomClaims()
     {
         return [];
+    }
+     public function likes()
+    {
+        return $this->hasMany(Like::class);
+    }
+    // Define the relationship with the 'bookmarks' table
+    public function bookmarks()
+    {
+        return $this->belongsToMany(Post::class, 'bookmarks', 'user_id', 'post_id')
+                    ->withTimestamps();
     }
 }

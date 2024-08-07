@@ -10,6 +10,7 @@ use App\Http\Controllers\DictionaryController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ViewBookController;
+use App\Http\Controllers\ProfileController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -72,6 +73,7 @@ Route::group(['middleware'=>'api'], function () {
     Route::post('/bookmark/',[ViewBookController::class,'Bookmark']);
     Route::post('/like/',[ViewBookController::class,'Like']);
     Route::get('/fetchbookdetail/{id}',[ViewBookController::class,'Viewbook']);
+    Route::get('/fetchuserfile',[ProfileController::class,'Fetchuserfile']);
 });
 
  

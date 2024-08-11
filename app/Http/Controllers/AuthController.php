@@ -1,19 +1,19 @@
-<?php      
+<?php
 namespace App\Http\Controllers;
+
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use GuzzleHttp\Client;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
 {
-   
     public function handleAuthCallback(Request $request)
     {
         try {
             $idToken = $request->input('token');
-            Log::info('Received ID Token: ' . $idToken);
-    
+            
             // Verify ID token using Google's tokeninfo endpoint
             $client = new Client();
             $response = $client->get('https://oauth2.googleapis.com/tokeninfo', [
@@ -25,33 +25,39 @@ class AuthController extends Controller
             }
     
             $googleUser = json_decode($response->getBody(), true);
-            Log::info('Google Token Info Retrieved: ', $googleUser);
-    
-            // Find or create the user in the local database
+           
+            if (!isset($googleUser['email'])) {
+                throw new \Exception('Invalid token response structure');
+            }
+ 
+            if ($googleUser['aud'] !== config('services.google.client_id')) {
+                throw new \Exception('Invalid token audience');
+            }
+     
             $user = User::updateOrCreate(
                 ['email' => $googleUser['email']],
                 [
                     'firstname' => $googleUser['given_name'] ?? '',
                     'lastname' => $googleUser['family_name'] ?? '',
                     'avatar' => $googleUser['picture'] ?? '',
-                    'password' => bcrypt('dummy123'), // Store a valid password hash
+                    'password' => bcrypt('dummy123'),
+                    'gender' => "nothing",
+                    'address' => "nothing",
+                    'country' => "nothing",
                 ]
             );
+
+            // Generate JWT token for the user
+            $jwtToken = JWTAuth::fromUser($user);
     
-            Log::info('User Retrieved or Created: ', $user->toArray());
-    
-            // Generate API token for the user
-            $apiToken = $user->createToken('authToken')->plainTextToken;
-            Log::info($apiToken);
             return response()->json([
                 'user' => $user,
-                'access_token' => $apiToken,
+                'access_token' => $jwtToken, // Use generated JWT token
                 'token_type' => 'Bearer',
             ]);
         } catch (\Exception $e) {
-            Log::error('Google Auth Error: ' . $e->getMessage());
+            Log::error($e->getMessage());
             return response()->json(['error' => 'Google authentication failed. Please try again.'], 500);
         }
     }
-    
 }

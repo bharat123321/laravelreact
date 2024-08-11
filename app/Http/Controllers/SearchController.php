@@ -30,4 +30,14 @@ class SearchController extends Controller
 
         return response()->json($result); // Return the result as JSON
     }
+    public function FetchSearcheddata($data)
+    {
+        $result = Image::where('topic', 'LIKE', '%' . $data . '%')
+                       ->orWhere('category', 'LIKE', '%' . $data . '%')  
+                       ->get();
+
+        \Log::info($result);  
+        return response()->json($result);  
+    }
+
 }

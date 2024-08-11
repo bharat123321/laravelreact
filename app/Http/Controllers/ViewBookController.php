@@ -46,10 +46,15 @@ class ViewBookController extends Controller
         'data' => $fetchdata,
         'likescount' => $likescount,
         'likepost' => $likesuccess,
-        'bookmark' => $success
+        'bookmark' => $success,
+        "users"=>Auth::user(),
     ]);
 }
-
+ 
+     public function FetchBookmark(){
+        $fetchdata = Bookmark::join('images','bookmarks.post_id','=','images.id')->where('bookmarks.user_id', Auth::user()->id)->get();
+        return response()->json(['data'=>$fetchdata]);
+     }
     public function bookmark(Request $request)
     {
         $postId = $request->input('id');

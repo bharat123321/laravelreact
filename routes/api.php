@@ -9,6 +9,7 @@ use App\Http\Controllers\WelcomeController;
 use App\Http\Controllers\DictionaryController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CommentController;
 use App\Http\Controllers\ViewBookController;
 use App\Http\Controllers\ProfileController;
 /*
@@ -33,12 +34,12 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::get("/", function () {
     return view("home");
 });
-use App\Http\Controllers\DataController;
-
-Route::middleware('auth:sanctum')->get('/data', [DataController::class, 'getData']);
+ 
 //google Auth
 Route::get('auth/google', [AuthController::class, 'redirectToAuth']);
 Route::post('auth/google/callback', [AuthController::class, 'handleAuthCallback']);
+ 
+
 // Authentication routes
 Route::post("/login", [HomeController::class, "login"])->name('login');
 Route::post("/register", [HomeController::class, "register"]);
@@ -74,6 +75,12 @@ Route::group(['middleware'=>'api'], function () {
     Route::post('/like/',[ViewBookController::class,'Like']);
     Route::get('/fetchbookdetail/{id}',[ViewBookController::class,'Viewbook']);
     Route::get('/fetchuserfile',[ProfileController::class,'Fetchuserfile']);
+    Route::get('/fetchsearcheddata/{data}',[SearchController::class,'FetchSearcheddata']);
+    Route::post('comments',[CommentController::class,'Comments']);
+    Route::get('/comments/{post_id}', [CommentController::class, 'index']);
+    Route::put('/comments/{id}', [CommentController::class,'UpdateComment']);
+    Route::delete('/comments/{id}', [CommentController::class,'DeleteComment']);
+    Route::get('/fetchbookmarks',[ViewBookController::class,'FetchBookmark']);
 });
 
  

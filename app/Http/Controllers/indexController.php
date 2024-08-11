@@ -99,7 +99,7 @@ class indexController extends Controller
     }
     public function FetchUser()
     {
-        
+        \Log::info("Check Google Auth");
         if (Auth::check()) {
             Log::info('User is authenticated:', ['user' => Auth::user()]);
             $store = DB::table('users')->where('classcode_status', 1)->first();
@@ -138,6 +138,7 @@ public function FetchCreatedGroup()
 
   
 public function Fetchdata() {
+    \Log::info('Check for Google auth');
     $fetchData = Image::join('users', 'images.user_id', '=', 'users.id')
         ->where('images.visible', 'false')
         ->select('images.*', 'users.firstname', 'users.avatar')
@@ -240,11 +241,19 @@ public function updatePrivacy(Request $request, $id)
 }
 
 
-    public function UserVerify(){
-        
+    public function UserVerify(Request $request){
+        // if (!$request->hasHeader('Authorization')) {
+        //     return response()->json(['error' => 'Authorization token not found.'], 401);
+        //     \Log::info("Authorization not found");
+        // }
+        // else{
+        //     \Log::info("Authorization found");
+        // }
         if(Auth::check())
         {
-            return response()->json(['status'=>200]);
+            $user = User::findOrFail(Auth::user()->id); 
+            return response()->json(['status'=>200,'user'=>$user]);
+
         }
         
             return response()->json(['status'=>401]);

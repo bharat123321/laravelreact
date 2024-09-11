@@ -9,7 +9,7 @@ class Image extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['description','topic', 'image','video','category','file','user_id','visible'];
+    protected $fillable = ['id','description','topic', 'image','video','category','file','user_id','visible'];
 
     protected $casts = [
         'image_paths' => 'array',

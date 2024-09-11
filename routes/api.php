@@ -12,6 +12,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\ViewBookController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\AdminController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -81,6 +82,9 @@ Route::group(['middleware'=>'api'], function () {
     Route::put('/comments/{id}', [CommentController::class,'UpdateComment']);
     Route::delete('/comments/{id}', [CommentController::class,'DeleteComment']);
     Route::get('/fetchbookmarks',[ViewBookController::class,'FetchBookmark']);
+    Route::get("/postwithuser",[AdminController::class,'Fetchpostdata']);
+    Route::get("/acceptpostverfied/{id}",[AdminController::class,"VerifiedAccept"]);
+    Route::delete("/deletepost/{id}",[AdminController::class,"DeleteVeifiedPost"]);
 });
 
  

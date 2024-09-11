@@ -140,7 +140,7 @@ public function FetchCreatedGroup()
 public function Fetchdata() {
     \Log::info('Check for Google auth');
     $fetchData = Image::join('users', 'images.user_id', '=', 'users.id')
-        ->where('images.visible', 'false')
+        ->where(['images.visible'=> 'false','images.is_approved'=>1])
         ->select('images.*', 'users.firstname', 'users.avatar')
         ->orderByDesc('images.created_at')
         ->get()

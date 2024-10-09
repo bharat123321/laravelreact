@@ -26,6 +26,17 @@
         .content {
             padding: 20px;
         }
+        .code-box {
+            background-color: #f1f1f1;
+            border: 1px dashed #007BFF;
+            color: #333333;
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+            padding: 10px;
+            margin: 20px 0;
+            letter-spacing: 4px;
+        }
         .footer {
             text-align: center;
             color: #888888;
@@ -37,12 +48,15 @@
 <body>
     <div class="email-container">
         <div class="header">
-            <h1>Welcome to NoteSharing!</h1>
+            <h1>NoteSharing Verification Code</h1>
         </div>
         <div class="content">
             <p>Hello,</p>
-            <p>Thank you for signing up for our platform. We hope you enjoy sharing and discovering notes with us.</p>
-            <p>If you have any questions, feel free to reach out to us.</p>
+            <p>We received a request to reset your password. Please use the code below to complete the process:</p>
+            <div class="code-box">
+                {{ $code }}
+            </div>
+            <p>If you didn't request this code, please ignore this email or contact our support team.</p>
         </div>
         <div class="footer">
             <p>&copy; 2024 NoteSharing. All rights reserved.</p>

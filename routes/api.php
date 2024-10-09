@@ -13,6 +13,8 @@ use App\Http\Controllers\CommentController;
 use App\Http\Controllers\ViewBookController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\VerificationController;
+use App\Http\Controllers\FindAccountController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -36,7 +38,6 @@ Route::get("/", function () {
     return view("home");
 });
  
-//google Auth
 Route::get('auth/google', [AuthController::class, 'redirectToAuth']);
 Route::post('auth/google/callback', [AuthController::class, 'handleAuthCallback']);
  
@@ -49,8 +50,17 @@ Route::get('/fetchpublicdata',[WelcomeController::class,'fetchpublicdata']);
 Route::get('/fetchbookid/{id}',[WelcomeController::class,'Viewbook']);
 Route::get('/lookup/{word}', [DictionaryController::class, 'lookupWord']);
 Route::get('/fetchsearchdata/{data}', [SearchController::class, 'Fetchsearchdata']);
+Route::post('/find-account',[FindAccountController::class,'FindAccount']);
+Route::post('/sendcode',[FindAccountController::class,'SendCode']);
+//email verification
+Route::post('/email/resend', [VerificationController::class, 'resend'])
+    ->middleware('auth:api'); // Require user to be authenticated
+    Route::get('/email/verify/{id}/{hash}', [VerificationController::class, 'verify'])
+    ->middleware(['auth:api', 'signed']) // Ensure it's an authenticated and signed URL
+    ->name('verification.verify');
+
 // Authenticated routes group
-Route::group(['middleware'=>'api'], function () {
+Route::group(['middleware'=>['api','verified']], function () {
     Route::post('/upload', [HomeController::class, 'upload']);
     Route::post('/classcode',[HomeController::class,'classCode']);
     Route::post('/joincode',[IndexController::class,'Joincode']);

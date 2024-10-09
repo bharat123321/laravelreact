@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Image;
 use App\Models\classcode;
+use App\Mail\WelcomeEmail;
+use Illuminate\Support\Facades\Mail;
 class HomeController extends Controller
 {
     /**
@@ -79,7 +81,8 @@ class HomeController extends Controller
             'address'=>$request->address,
             'country' =>$request->country
             ]);
-             
+              //$user->sendEmailVerificationNotification();
+              Mail::to($user['email'])->send(new WelcomeEmail($user));
             if($user){
               
                 return response()->json([
